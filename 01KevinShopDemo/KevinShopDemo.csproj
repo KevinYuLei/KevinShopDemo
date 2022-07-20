@@ -1,0 +1,116 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{F6837B4B-A989-468E-8039-A0D571388E7F}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>KevinShopDemo</RootNamespace>
+    <AssemblyName>KevinShopDemo</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Eto, Version=2.6.0.0, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
+      <HintPath>packages\RhinoCommon.7.19.22180.9001\lib\net48\Eto.dll</HintPath>
+    </Reference>
+    <Reference Include="GH_IO, Version=7.19.22180.9001, Culture=neutral, PublicKeyToken=6a29997d2e6b4f97, processorArchitecture=MSIL">
+      <HintPath>packages\Grasshopper.7.19.22180.9001\lib\net48\GH_IO.dll</HintPath>
+    </Reference>
+    <Reference Include="Grasshopper, Version=7.19.22180.9001, Culture=neutral, PublicKeyToken=dda4f5ec2cd80803, processorArchitecture=MSIL">
+      <HintPath>packages\Grasshopper.7.19.22180.9001\lib\net48\Grasshopper.dll</HintPath>
+    </Reference>
+    <Reference Include="Rhino.UI, Version=7.19.22180.9001, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
+      <HintPath>packages\RhinoCommon.7.19.22180.9001\lib\net48\Rhino.UI.dll</HintPath>
+    </Reference>
+    <Reference Include="RhinoCommon, Version=7.19.22180.9001, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
+      <HintPath>packages\RhinoCommon.7.19.22180.9001\lib\net48\RhinoCommon.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\02Learn\C__Script-45a84.cs">
+      <Link>C__Script-45a84.cs</Link>
+    </Compile>
+    <Compile Include="..\03BezirCurve\C__Script-5870f.cs">
+      <Link>C__Script-5870f.cs</Link>
+    </Compile>
+    <Compile Include="..\04SubdivisionMesh\C_-ea76d.cs">
+      <Link>C_-ea76d.cs</Link>
+    </Compile>
+    <Compile Include="..\05DataTreeTest\C_-d0bcc.cs">
+      <Link>C_-d0bcc.cs</Link>
+    </Compile>
+    <Compile Include="..\06ParametricSoundHole\C_-84b64.cs">
+      <Link>C_-84b64.cs</Link>
+    </Compile>
+    <Compile Include="..\07GH_Structure\C_-6d844.cs">
+      <Link>C_-6d844.cs</Link>
+    </Compile>
+    <Compile Include="..\08Handrail\C_-1eabe.cs">
+      <Link>C_-1eabe.cs</Link>
+    </Compile>
+    <Compile Include="..\09RotatedIterativeBox\C_-7a0de.cs">
+      <Link>C_-7a0de.cs</Link>
+    </Compile>
+    <Compile Include="..\11WeaveLandscapeSketch\component\C_-0bdaa.cs">
+      <Link>C_-0bdaa.cs</Link>
+    </Compile>
+    <Compile Include="..\11WeaveLandscapeSketch\C_-cb068.cs">
+      <Link>C_-cb068.cs</Link>
+    </Compile>
+    <Compile Include="..\12SteelTruss\C_-52eea.cs">
+      <Link>C_-52eea.cs</Link>
+    </Compile>
+    <Compile Include="..\13AxisNet\C_-a74db.cs">
+      <Link>C_-a74db.cs</Link>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="packages\RhinoCommon.7.19.22180.9001\build\net48\RhinoCommon.targets" Condition="Exists('packages\RhinoCommon.7.19.22180.9001\build\net48\RhinoCommon.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>这台计算机上缺少此项目引用的 NuGet 程序包。使用“NuGet 程序包还原”可下载这些程序包。有关更多信息，请参见 http://go.microsoft.com/fwlink/?LinkID=322105。缺少的文件是 {0}。</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('packages\RhinoCommon.7.19.22180.9001\build\net48\RhinoCommon.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\RhinoCommon.7.19.22180.9001\build\net48\RhinoCommon.targets'))" />
+    <Error Condition="!Exists('packages\Grasshopper.7.19.22180.9001\build\net48\Grasshopper.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Grasshopper.7.19.22180.9001\build\net48\Grasshopper.targets'))" />
+  </Target>
+  <Import Project="packages\Grasshopper.7.19.22180.9001\build\net48\Grasshopper.targets" Condition="Exists('packages\Grasshopper.7.19.22180.9001\build\net48\Grasshopper.targets')" />
+</Project>
