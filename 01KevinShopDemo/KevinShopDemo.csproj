@@ -98,6 +98,9 @@
     <Compile Include="..\13AxisNet\C_-a74db.cs">
       <Link>C_-a74db.cs</Link>
     </Compile>
+    <Compile Include="..\14BeamFromAxisNet\C_-c703f.cs">
+      <Link>C_-c703f.cs</Link>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

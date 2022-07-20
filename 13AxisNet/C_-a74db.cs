@@ -53,14 +53,13 @@ public abstract class Script_Instance_a74db : GH_ScriptInstance
   /// they will have a default value.
   /// </summary>
   #region Runscript
-  private void RunScript(Point3d datumPt, List<double> sizeX, List<double> sizeY, bool createColumns, double heightOfColumn, double radiusOfColumn, bool isCircle, ref object outVerticleLines, ref object outHorizontalLines, ref object outPts, ref object outColumns)
+  private void RunScript(Point3d datumPt, List<double> sizeX, List<double> sizeY, double extensionLength, bool createColumns, double heightOfColumn, double radiusOfColumn, bool isCircle, ref object outVerticalLines, ref object outHorizontalLines, ref object outPts, ref object outColumns)
   {
-    List<Curve> verticleLines = new List<Curve>();
+    List<Curve> verticalLines = new List<Curve>();
     List<Curve> horizontalLines = new List<Curve>();
     DataTree<Point3d> centerPts = new DataTree<Point3d>();
     DataTree<Brep> columns = new DataTree<Brep>();
 
-    double extensionLength = 1000;
     double lengthOfVLine = extensionLength * 2;
     double lengthOfHLine = extensionLength * 2;
     for (int i = 0; i < sizeX.Count; i++)
@@ -72,15 +71,15 @@ public abstract class Script_Instance_a74db : GH_ScriptInstance
       lengthOfVLine += sizeY[i];
     }
 
-    CreateLines(datumPt, sizeX, 0, extensionLength, lengthOfVLine, ref verticleLines);
+    CreateLines(datumPt, sizeX, 0, extensionLength, lengthOfVLine, ref verticalLines);
     CreateLines(datumPt, sizeY, 1, extensionLength, lengthOfHLine, ref horizontalLines);
 
     if(createColumns==true)
     {
-      CreateColumns(verticleLines, horizontalLines, heightOfColumn, radiusOfColumn, isCircle, ref centerPts, ref columns);
+      CreateColumns(verticalLines, horizontalLines, heightOfColumn, radiusOfColumn, isCircle, ref centerPts, ref columns);
     }
 
-    outVerticleLines = verticleLines;
+    outVerticalLines = verticalLines;
     outHorizontalLines = horizontalLines;
     outPts = centerPts;
     outColumns = columns;
@@ -115,13 +114,13 @@ public abstract class Script_Instance_a74db : GH_ScriptInstance
     }
   }
 
-  public void CreateColumns(List<Curve> verticleLines,List<Curve> horizontalLines,double heightOfColumn,double radiusOfColumn,bool isCircle,ref DataTree<Point3d> centerPts,ref DataTree<Brep> columns)
+  public void CreateColumns(List<Curve> verticalLines,List<Curve> horizontalLines,double heightOfColumn,double radiusOfColumn,bool isCircle,ref DataTree<Point3d> centerPts,ref DataTree<Brep> columns)
   {
-    for (int i = 0; i < verticleLines.Count; i++)
+    for (int i = 0; i < verticalLines.Count; i++)
     {
       for (int j = 0; j < horizontalLines.Count; j++)
       {
-        CurveIntersections intersections = Intersection.CurveCurve(verticleLines[i], horizontalLines[j], 0.1, 0.1);
+        CurveIntersections intersections = Intersection.CurveCurve(verticalLines[i], horizontalLines[j], 0.1, 0.1);
         for (int k = 0; k < intersections.Count; k++)
         {
           Point3d centerPt = intersections[k].PointA;
