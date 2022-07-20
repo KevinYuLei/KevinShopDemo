@@ -52,7 +52,7 @@ public abstract class Script_Instance_c703f : GH_ScriptInstance
   /// they will have a default value.
   /// </summary>
   #region Runscript
-  private void RunScript(List<Curve> verticalLines, List<Curve> horizontalLines, double extensionLength, double heightOfColumn, double beamHeight, double beamWidth, bool type, ref object A, ref object B, ref object C, ref object D, ref object E, ref object F)
+  private void RunScript(List<Curve> verticalLines, List<Curve> horizontalLines, double extensionLength, double heightOfColumn, double beamHeight, double beamWidth, bool type, ref object outVerticalBeams, ref object outHorizontalBeams)
   {
     //trim the both curve end to get the beam baseCurve in the real length
     TrimLines(extensionLength, ref verticalLines);
@@ -68,8 +68,13 @@ public abstract class Script_Instance_c703f : GH_ScriptInstance
       horizontalLines[i].Transform(Transform.Translation(0, 0, heightOfColumn));
     }
 
-    A = verticalLines;
-    B = horizontalLines;
+    List<Brep> verticalBeams = new List<Brep>();
+    List<Brep> horizontalBeams = new List<Brep>();
+    CreateBeams(verticalLines, beamHeight, beamWidth, type, ref verticalBeams);
+    CreateBeams(horizontalLines, beamHeight, beamWidth, type, ref horizontalBeams);
+
+    outVerticalBeams = verticalBeams;
+    outHorizontalBeams = horizontalBeams;
   }
   #endregion
   #region Additional
@@ -83,7 +88,23 @@ public abstract class Script_Instance_c703f : GH_ScriptInstance
 
   public void CreateBeams(List<Curve> beamLines, double beamHeight,double beamWidth,bool type,ref List<Brep> beams)
   {
+    double flag = 1;
+    if (type == false)
+      flag = -1;
 
+    
+    for (int i = 0; i < beamLines.Count; i++)
+    {
+      Curve curve1 = beamLines[i].Offset(Plane.WorldXY, beamWidth / 2, 0.1, CurveOffsetCornerStyle.Sharp)[0];
+      Curve curve2 = beamLines[i].Offset(Plane.WorldXY, -beamWidth / 2, 0.1, CurveOffsetCornerStyle.Sharp)[0];
+      Curve curve3 = new Line(curve1.PointAtStart, curve2.PointAtStart).ToNurbsCurve();
+      Curve curve4 = new Line(curve1.PointAtEnd, curve2.PointAtEnd).ToNurbsCurve();
+
+      Curve baseCurve = Curve.JoinCurves(new List<Curve> { curve1, curve2, curve3, curve4 }, 0.1)[0];
+      Brep beam = Surface.CreateExtrusion(baseCurve, new Vector3d(0, 0, beamHeight * flag)).ToBrep().CapPlanarHoles(0.1);
+
+      beams.Add(beam);
+    }
   }
   #endregion
 }

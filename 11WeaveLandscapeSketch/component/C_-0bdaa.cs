@@ -11,6 +11,7 @@ using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
 
 using Rhino.Collections;
+using Rhino.Geometry.Intersect;
 
 
 /// <summary>
@@ -53,58 +54,86 @@ public abstract class Script_Instance_0bdaa : GH_ScriptInstance
   /// they will have a default value.
   /// </summary>
   #region Runscript
-  private void RunScript(Point3d datumPt, double radius, double height, double slackness, int fittingDegree, int countOfUnit, double radiusOfPipe, bool isCircle, ref object A, ref object B, ref object C, ref object D, ref object E, ref object F, ref object AA, ref object AB, ref object AC, ref object AD, ref object AE, ref object AF)
+  private void RunScript(Point3d datumPt, double radius, double height, double slackness, int fittingDegree, int countOfUnit, double radiusOfPipe, bool isCircle, ref object A, ref object B, ref object C, ref object D, ref object E, ref object F, ref object AA, ref object AB, ref object AC, ref object AD, ref object AE, ref object AF, ref object BA, ref object BB, ref object BC)
   {
+    if (countOfUnit < 4)
+      countOfUnit = 4;
+
     double extensionLength = 100;
     double shortSideLength = (radius + extensionLength) * 2;
     double longSideLength = shortSideLength * Math.Tan(Math.PI / 6) * 2;
     double radiusOfHexagon = (longSideLength / countOfUnit) / 2;
 
-    //�����ײ���׼����
+    //create bottom rectangle
     Rectangle3d bottomRectangle = new Rectangle3d(new Plane(datumPt, Vector3d.XAxis, Vector3d.YAxis), new Interval(-longSideLength / 2, longSideLength / 2), new Interval(-shortSideLength / 2, shortSideLength / 2));
-    //������������
+    //create top rectangle
     Rectangle3d topRectangle = bottomRectangle;
     topRectangle.Transform(Transform.Translation(0, 0, height));
 
-    //��������������������
+    //create hexagon in the center of bottom rectangle
     Curve hexagon = CreatePolygon(datumPt,radiusOfHexagon, 6);
 
-    //�������������
-    List<Curve> curvesToLoft = new List<Curve>();
-    for (int i = 0; i <=fittingDegree; i++)
-    {
-      double scaleFactor = ((radiusOfHexagon * Math.Sqrt(6) / 2) / radius) * (1+i*slackness);
-      double moveHeight = height / fittingDegree;
-      Curve curveToLoft = new Circle(datumPt, radius*scaleFactor).ToNurbsCurve();
-      curveToLoft.Transform(Transform.Translation(0, 0, i * moveHeight));
-      curvesToLoft.Add(curveToLoft);
-    }
-    //���������������һ��δ���ŵķ���Բ��
-    Curve lastCurve = new Circle(datumPt, radius).ToNurbsCurve();
-    lastCurve.Transform(Transform.Translation(0, 0, height));
-    curvesToLoft.Add(lastCurve);
+    //create the loft brep
+    Brep loftBrep = CreateLoftBrep(datumPt, radius, height, slackness, fittingDegree, radiusOfHexagon, topRectangle);
 
-    //�����������岿��1
-    Brep loftBrepPart1 = Brep.CreateFromLoft(curvesToLoft, Point3d.Unset, Point3d.Unset, LoftType.Loose, false)[0];
 
-    //�����������岿��2
-    CurveList curveList = new CurveList();
-    curveList.Add(topRectangle.ToNurbsCurve());
-    curveList.Add(lastCurve);
-    Brep loftBrepPart2 = Brep.CreatePlanarBreps(curveList, 0.1)[0];
+    //create boundary brep of bottom rectangle
+    Brep contourBrep = Brep.CreatePlanarBreps(bottomRectangle.ToNurbsCurve(), 0.1)[0];
 
-    Brep loftBrep = Brep.JoinBreps(new List<Brep> { loftBrepPart1, loftBrepPart2 }, 0.1)[0];
-
+    //explode the hexagon
     List<Curve> segmentsOfHexagon = new List<Curve>();
     segmentsOfHexagon.AddRange(((PolyCurve)hexagon).Explode());
-    double ContourDistance = radiusOfHexagon * Math.Sin(Math.PI / 3) * 2;
-    
+
+    //initialize parameters for contour
+    double contourDistance = radiusOfHexagon * Math.Sin(Math.PI / 3) * 2;
+    double obliqueLength = longSideLength * Math.Cos(Math.PI / 6) + shortSideLength * Math.Cos(Math.PI / 3);
+    double countOfObliqueContours = obliqueLength / contourDistance;
+    double countOfHorizontalContours = countOfUnit;
+
+    //correct the countOfObliqueContour
+    if (countOfUnit%4==1.0)
+    {
+      countOfObliqueContours += 0.5;
+    }
+    else if(countOfUnit % 4==2.0)
+    {
+      countOfObliqueContours -= 1;
+    }
+    else if(countOfUnit % 4==3.0)
+    {
+      countOfObliqueContours -= 0.5;
+    }
+    //correct the countOfHorizontalContour
+    if (countOfHorizontalContours%2==1.0)
+    {
+      countOfHorizontalContours -= 1;
+    }
+
+    //create contours in 3 directions
+    List<Curve> obliqueContours1 = new List<Curve>();
+    List<Curve> obliqueContours2 = new List<Curve>();
+    List<Curve> horizontalContours = new List<Curve>();
+    CreateContours(segmentsOfHexagon[0], segmentsOfHexagon[3], contourBrep, contourDistance, countOfObliqueContours, ref obliqueContours1);
+    CreateContours(segmentsOfHexagon[1], segmentsOfHexagon[4], contourBrep, contourDistance, countOfHorizontalContours, ref horizontalContours);
+    CreateContours(segmentsOfHexagon[2], segmentsOfHexagon[5], contourBrep, contourDistance, countOfObliqueContours, ref obliqueContours2);
+
+    ////test the project method
+    //List<Curve> projectedCrvs = new List<Curve>();
+    //projectedCrvs.AddRange(Curve.ProjectToBrep(obliqueContours1, new List<Brep> { loftBrep }, Vector3d.ZAxis, 0.1));
+
 
 
     A = bottomRectangle;
     B = hexagon;
     C = loftBrep;
     D = segmentsOfHexagon;
+    E = countOfObliqueContours;
+    F = countOfHorizontalContours;
+    AA = obliqueContours1;
+    AB = horizontalContours;
+    AC = obliqueContours2;
+
+
   }
   #endregion
   #region Additional
@@ -121,6 +150,78 @@ public abstract class Script_Instance_0bdaa : GH_ScriptInstance
       polygon.Append(new Line(startPt, endPt));
     }
     return polygon;
+  }
+
+  public Brep CreateLoftBrep(Point3d datumPt, double radius, double height, double slackness, int fittingDegree, double radiusOfHexagon, Rectangle3d topRectangle)
+  {
+    //create a seires of circles to loft
+    List<Curve> curvesToLoft = new List<Curve>();
+    for (int i = 0; i <= fittingDegree; i++)
+    {
+      double scaleFactor = ((radiusOfHexagon * Math.Sqrt(6) / 2) / radius) * (1 + i * slackness);
+      double moveHeight = height / fittingDegree;
+      Curve curveToLoft = new Circle(datumPt, radius * scaleFactor).ToNurbsCurve();
+      curveToLoft.Transform(Transform.Translation(0, 0, i * moveHeight));
+      curvesToLoft.Add(curveToLoft);
+    }
+    //add the last circle in the top rectangle without scaling
+    Curve lastCurve = new Circle(datumPt, radius).ToNurbsCurve();
+    lastCurve.Transform(Transform.Translation(0, 0, height));
+    curvesToLoft.Add(lastCurve);
+
+    //create loft part 1
+    Brep loftBrepPart1 = Brep.CreateFromLoft(curvesToLoft, Point3d.Unset, Point3d.Unset, LoftType.Loose, false)[0];
+
+    //create loft part 2 with boundary surface/brep
+    CurveList curveList = new CurveList();
+    curveList.Add(topRectangle.ToNurbsCurve());
+    curveList.Add(lastCurve);
+    Brep loftBrepPart2 = Brep.CreatePlanarBreps(curveList, 0.1)[0];
+
+    Brep loftBrep = Brep.JoinBreps(new List<Brep> { loftBrepPart1, loftBrepPart2 }, 0.1)[0];
+
+    return loftBrep;
+  }
+
+  public void CreateContours(Curve segmentOfHexagon,Curve oppositeSegment,Brep contourBrep,double contourDistance,double countOfContours,ref List<Curve> contours)
+  {
+    Point3d midPtOfSegment1 = segmentOfHexagon.PointAtLength(segmentOfHexagon.GetLength() / 2);
+    double tOfMidPt1;
+    segmentOfHexagon.ClosestPoint(midPtOfSegment1, out tOfMidPt1);
+    Vector3d tangentAtMidPt1 = segmentOfHexagon.TangentAt(tOfMidPt1);
+    Plane originPlane = new Plane(midPtOfSegment1, tangentAtMidPt1, Vector3d.ZAxis);
+
+    Point3d midPtOfSegment2 = oppositeSegment.PointAt(oppositeSegment.GetLength() / 2);
+    double tOfMidPt2;
+    oppositeSegment.ClosestPoint(midPtOfSegment2, out tOfMidPt2);
+    Vector3d tangentAtMidPt2 = oppositeSegment.TangentAt(tOfMidPt2);
+    Plane oppositePlane = new Plane(midPtOfSegment2, tangentAtMidPt2, Vector3d.ZAxis);
+    
+    for (int i = 0; i < countOfContours/2; i++)
+    {
+      Plane interPlane = originPlane;
+      Vector3d move = originPlane.ZAxis * contourDistance * i;
+      interPlane.Transform(Transform.Translation(move));
+      Curve[] interCrvs;
+      Point3d[] interPts;
+      Intersection.BrepPlane(contourBrep, interPlane, 0.1, out interCrvs, out interPts);
+      if (interCrvs == null)
+        continue;
+      contours.AddRange(interCrvs);
+    }
+
+    for (int i = 0; i < countOfContours/2; i++)
+    {
+      Plane interPlane = oppositePlane;
+      Vector3d move = oppositePlane.ZAxis * contourDistance * i;
+      interPlane.Transform(Transform.Translation(move));
+      Curve[] interCrvs;
+      Point3d[] interPts;
+      Intersection.BrepPlane(contourBrep, interPlane, 0.1, out interCrvs, out interPts);
+      if (interCrvs == null)
+        continue;
+      contours.AddRange(interCrvs);
+    }
   }
   #endregion
 }
