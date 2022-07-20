@@ -54,7 +54,7 @@ public abstract class Script_Instance_0bdaa : GH_ScriptInstance
   /// they will have a default value.
   /// </summary>
   #region Runscript
-  private void RunScript(Point3d datumPt, double radius, double height, double slackness, int fittingDegree, int countOfUnit, double radiusOfPipe, bool isCircle, ref object A, ref object B, ref object C, ref object D, ref object E, ref object F, ref object AA, ref object AB, ref object AC, ref object AD, ref object AE, ref object AF, ref object BA, ref object BB, ref object BC)
+  private void RunScript(Point3d datumPt, double radius, double height, double slackness, int fittingDegree, int countOfUnit, double radiusOfPipe, bool isCircle, ref object A, ref object B, ref object C, ref object D, ref object E, ref object F, ref object AA, ref object AB, ref object AC, ref object AD, ref object AE, ref object AF, ref object BA, ref object BB, ref object BC, ref object BD, ref object BE, ref object BF)
   {
     if (countOfUnit < 4)
       countOfUnit = 4;
@@ -75,7 +75,6 @@ public abstract class Script_Instance_0bdaa : GH_ScriptInstance
 
     //create the loft brep
     Brep loftBrep = CreateLoftBrep(datumPt, radius, height, slackness, fittingDegree, radiusOfHexagon, topRectangle);
-
 
     //create boundary brep of bottom rectangle
     Brep contourBrep = Brep.CreatePlanarBreps(bottomRectangle.ToNurbsCurve(), 0.1)[0];
@@ -117,11 +116,22 @@ public abstract class Script_Instance_0bdaa : GH_ScriptInstance
     CreateContours(segmentsOfHexagon[1], segmentsOfHexagon[4], contourBrep, contourDistance, countOfHorizontalContours, ref horizontalContours);
     CreateContours(segmentsOfHexagon[2], segmentsOfHexagon[5], contourBrep, contourDistance, countOfObliqueContours, ref obliqueContours2);
 
-    ////test the project method
-    //List<Curve> projectedCrvs = new List<Curve>();
-    //projectedCrvs.AddRange(Curve.ProjectToBrep(obliqueContours1, new List<Brep> { loftBrep }, Vector3d.ZAxis, 0.1));
+    //correct contours
+    //create bigger hexagon to trim contours
+    Curve correctionHexagon = CreatePolygon(datumPt, radiusOfHexagon * 3, 6);
+    Curve correctionCircle = new Circle(datumPt, radiusOfHexagon * Math.Sqrt(6) / 2).ToNurbsCurve();
+    Point3d[] correctPts;
+    correctionCircle.DivideByCount(12, false, out correctPts);
+    for (int i = 0; i < correctPts.Length; i++)
+    {
+      correctPts[i].Transform(Transform.Rotation(Math.PI / 12, datumPt));
+    }
 
+    CurveIntersections intersections=Intersection.CurveCurve(obliqueContours1[0], correctionHexagon, 0.1, 0.1);
 
+    
+    //obliqueContours1.RemoveAt(0);
+    //obliqueContours1.RemoveAt((int)countOfObliqueContours / 2 - 1);
 
     A = bottomRectangle;
     B = hexagon;
@@ -132,7 +142,13 @@ public abstract class Script_Instance_0bdaa : GH_ScriptInstance
     AA = obliqueContours1;
     AB = horizontalContours;
     AC = obliqueContours2;
-
+    AD = correctionHexagon;
+    AE = correctionCircle;
+    AF = correctPts;
+    BA = intersections.Count;
+    BB = obliqueContours1[0].Trim(obliqueContours1[0].Domain.Min, intersections[0].ParameterA);
+    BC= obliqueContours1[0].Trim(intersections[1].ParameterA,obliqueContours1[0].Domain.Max);
+    BD = intersections[1].PointA;
 
   }
   #endregion
