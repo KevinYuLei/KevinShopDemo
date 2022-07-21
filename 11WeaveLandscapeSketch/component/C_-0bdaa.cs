@@ -54,7 +54,7 @@ public abstract class Script_Instance_0bdaa : GH_ScriptInstance
   /// they will have a default value.
   /// </summary>
   #region Runscript
-  private void RunScript(Point3d datumPt, double radius, double height, double slackness, int fittingDegree, int countOfUnit, double radiusOfPipe, bool isCircle, ref object A, ref object B, ref object C, ref object D, ref object E, ref object F, ref object AA, ref object AB, ref object AC, ref object AD, ref object AE, ref object AF, ref object BA, ref object BB, ref object BC, ref object BD, ref object BE, ref object BF)
+  private void RunScript(Point3d datumPt, double radius, double height, double slackness, int fittingDegree, int countOfUnit, double radiusOfPipe, bool isCircle, ref object outPipes)
   {
     if (countOfUnit < 4)
       countOfUnit = 4;
@@ -109,47 +109,37 @@ public abstract class Script_Instance_0bdaa : GH_ScriptInstance
     }
 
     //create contours in 3 directions
-    List<Curve> obliqueContours1 = new List<Curve>();
-    List<Curve> obliqueContours2 = new List<Curve>();
-    List<Curve> horizontalContours = new List<Curve>();
-    CreateContours(segmentsOfHexagon[0], segmentsOfHexagon[3], contourBrep, contourDistance, countOfObliqueContours, ref obliqueContours1);
-    CreateContours(segmentsOfHexagon[1], segmentsOfHexagon[4], contourBrep, contourDistance, countOfHorizontalContours, ref horizontalContours);
-    CreateContours(segmentsOfHexagon[2], segmentsOfHexagon[5], contourBrep, contourDistance, countOfObliqueContours, ref obliqueContours2);
+    List<Curve> obliqueContours1 = CreateContours(segmentsOfHexagon[0], segmentsOfHexagon[3], contourBrep, contourDistance, countOfObliqueContours);
+    List<Curve> horizontalContours = CreateContours(segmentsOfHexagon[1], segmentsOfHexagon[4], contourBrep, contourDistance, countOfHorizontalContours);
+    List<Curve> obliqueContours2 = CreateContours(segmentsOfHexagon[2], segmentsOfHexagon[5], contourBrep, contourDistance, countOfObliqueContours);
 
     //correct contours
     //create bigger hexagon to trim contours
     Curve correctionHexagon = CreatePolygon(datumPt, radiusOfHexagon * 3, 6);
+    //create correction points 
     Curve correctionCircle = new Circle(datumPt, radiusOfHexagon * Math.Sqrt(6) / 2).ToNurbsCurve();
-    Point3d[] correctPts;
-    correctionCircle.DivideByCount(12, false, out correctPts);
-    for (int i = 0; i < correctPts.Length; i++)
-    {
-      correctPts[i].Transform(Transform.Rotation(Math.PI / 12, datumPt));
-    }
 
-    CurveIntersections intersections=Intersection.CurveCurve(obliqueContours1[0], correctionHexagon, 0.1, 0.1);
+    List<Curve> correctionObliqueContours1 = CorrectContours(datumPt, correctionHexagon, correctionCircle, obliqueContours1, countOfObliqueContours);
+    List<Curve> correctionHorizontalContours = CorrectContours(datumPt, correctionHexagon, correctionCircle, horizontalContours, countOfHorizontalContours);
+    List<Curve> correctionObliqueContours2 = CorrectContours(datumPt, correctionHexagon, correctionCircle, obliqueContours2, countOfObliqueContours);
 
-    
-    //obliqueContours1.RemoveAt(0);
-    //obliqueContours1.RemoveAt((int)countOfObliqueContours / 2 - 1);
+    List<Curve> projectionCrvsFromOC1 = CreateProjectionCurves(correctionObliqueContours1, loftBrep);
+    List<Curve> projectionCrvsFromHC = CreateProjectionCurves(correctionHorizontalContours, loftBrep);
+    List<Curve> projectionCrvsFromOC2 = CreateProjectionCurves(correctionObliqueContours2, loftBrep);
 
-    A = bottomRectangle;
-    B = hexagon;
-    C = loftBrep;
-    D = segmentsOfHexagon;
-    E = countOfObliqueContours;
-    F = countOfHorizontalContours;
-    AA = obliqueContours1;
-    AB = horizontalContours;
-    AC = obliqueContours2;
-    AD = correctionHexagon;
-    AE = correctionCircle;
-    AF = correctPts;
-    BA = intersections.Count;
-    BB = obliqueContours1[0].Trim(obliqueContours1[0].Domain.Min, intersections[0].ParameterA);
-    BC= obliqueContours1[0].Trim(intersections[1].ParameterA,obliqueContours1[0].Domain.Max);
-    BD = intersections[1].PointA;
+    List<Curve> allProjectionCrvs = new List<Curve>();
+    allProjectionCrvs.AddRange(projectionCrvsFromOC1);
+    allProjectionCrvs.AddRange(projectionCrvsFromHC);
+    allProjectionCrvs.AddRange(projectionCrvsFromOC2);
 
+    //limit the max radius of pipe according to the bottom circle(corretion circle)
+    double fixFactorForMaxPipeRadius = 1.2;
+    double maxPipeRadius = (correctionCircle.GetLength()/24)/fixFactorForMaxPipeRadius;
+    radiusOfPipe = Math.Min(radiusOfPipe, maxPipeRadius);
+    //create pipes
+    List<Brep> pipes = CreatePipes(allProjectionCrvs, radiusOfPipe, isCircle);
+
+    outPipes = pipes;
   }
   #endregion
   #region Additional
@@ -199,8 +189,10 @@ public abstract class Script_Instance_0bdaa : GH_ScriptInstance
     return loftBrep;
   }
 
-  public void CreateContours(Curve segmentOfHexagon,Curve oppositeSegment,Brep contourBrep,double contourDistance,double countOfContours,ref List<Curve> contours)
+  public List<Curve> CreateContours(Curve segmentOfHexagon,Curve oppositeSegment,Brep contourBrep,double contourDistance,double countOfContours)
   {
+    List<Curve> contours = new List<Curve>();
+
     Point3d midPtOfSegment1 = segmentOfHexagon.PointAtLength(segmentOfHexagon.GetLength() / 2);
     double tOfMidPt1;
     segmentOfHexagon.ClosestPoint(midPtOfSegment1, out tOfMidPt1);
@@ -238,6 +230,124 @@ public abstract class Script_Instance_0bdaa : GH_ScriptInstance
         continue;
       contours.AddRange(interCrvs);
     }
+    return contours;
+  }
+
+  public List<Curve> CorrectContours(Point3d datumPt,Curve correctionHexagon, Curve correctionCircle , List<Curve> contours,double countOfContours)
+  {
+    List<Curve> correctionContours = new List<Curve>();
+
+    //select the exact curve
+    Curve contour1 = contours[0];
+    Curve contour2 = contours[(int)countOfContours / 2];
+
+    //compute the intersection points of contour and hexagon
+    CurveIntersections intersection1 = Intersection.CurveCurve(contour1, correctionHexagon, 0.1, 0.1);
+    CurveIntersections intersection2 = Intersection.CurveCurve(contour2, correctionHexagon, 0.1, 0.1);
+
+    //extract the outter parts of the contour
+    Curve part1OfContour1 = contour1.Trim(contour1.Domain.Min, intersection1[0].ParameterA);
+    Curve part2OfContour1 = contour1.Trim(intersection1[1].ParameterA, contour1.Domain.Max);
+
+    Curve part1OfContour2 = contour2.Trim(contour2.Domain.Min, intersection2[0].ParameterA);
+    Curve part2OfContour2 = contour2.Trim(intersection2[1].ParameterA, contour2.Domain.Max);
+
+    List<Curve> crvs = new List<Curve>();
+    crvs.Add(part1OfContour1);
+    crvs.Add(part2OfContour1);
+    crvs.Add(part1OfContour2);
+    crvs.Add(part2OfContour2);
+
+    correctionContours.AddRange(contours);
+    correctionContours.RemoveAt(0);
+    correctionContours.RemoveAt((int)countOfContours / 2 - 1);
+    for (int i = 0; i < crvs.Count; i++)
+    {
+      //initialize the end point closest to the datumPt
+      Point3d pt1;
+      if (i%2==0)
+      {
+        pt1 = crvs[i].PointAtEnd;
+      }
+      else
+      {
+        crvs[i].Reverse();
+        pt1 = crvs[i].PointAtEnd;
+      }
+
+      //find the point on circle closest to the pt1 
+      Point3d pt2 = new Point3d();
+      Curve contourX;
+      if (i < 2)
+        contourX = contour1.DuplicateCurve();
+      else
+        contourX = contour2.DuplicateCurve();
+
+      CurveIntersections circleIntersectionPts=Intersection.CurveCurve(contourX, correctionCircle, 0.1, 0.1);
+      if (i % 2 == 0)
+      {
+        pt2 = circleIntersectionPts[0].PointA;
+        pt2.Transform(Transform.Rotation(Math.PI / 6, datumPt));
+      }
+        
+      else
+      {
+        pt2 = circleIntersectionPts[1].PointA;
+        pt2.Transform(Transform.Rotation(-Math.PI / 6, datumPt));
+      }
+
+      Curve blendCurve=Curve.CreateBlendCurve(crvs[i], new Line(pt2, datumPt).ToNurbsCurve(), BlendContinuity.Curvature, 0, 1);
+
+      Curve correctionContour = Curve.JoinCurves(new List<Curve> { crvs[i], blendCurve }, 0.1)[0];
+      correctionContours.Add(correctionContour);
+    }
+    return correctionContours;
+  }
+
+  public List<Curve> CreateProjectionCurves(List<Curve> correctionCurves,Brep loftBrep)
+  {
+    List<Curve> projectionCurves = new List<Curve>();
+    for (int i = 0; i < correctionCurves.Count; i++)
+    {
+      Curve[] projectionCurve = Curve.ProjectToBrep(correctionCurves[i], loftBrep, Vector3d.ZAxis, 0.1);
+      projectionCurves.AddRange(projectionCurve);
+    }
+    return projectionCurves;
+  }
+
+  public List<Brep> CreatePipes(List<Curve> allProjectionCrvs,double radiusOfPipe, bool isCircle)
+  {
+    List<Brep> pipes = new List<Brep>();
+    if (isCircle == true)
+    {
+      for (int i = 0; i < allProjectionCrvs.Count; i++)
+      {
+        Brep[] pipe = Brep.CreatePipe(allProjectionCrvs[i], radiusOfPipe, true, PipeCapMode.Flat, true, 0.1, 0.1);
+        pipes.AddRange(pipe);
+      }
+    }
+    else
+    {
+      for (int i = 0; i < allProjectionCrvs.Count; i++)
+      {
+        Plane basePlane = new Plane(allProjectionCrvs[i].PointAtEnd, allProjectionCrvs[i].TangentAtEnd);
+        Curve baseRectangle = new Rectangle3d(basePlane, new Interval(-radiusOfPipe, radiusOfPipe), new Interval(-radiusOfPipe, radiusOfPipe)).ToNurbsCurve();
+        //initialize sweepOneRail object
+        SweepOneRail sweepOneRail = new SweepOneRail();
+        sweepOneRail.ClosedSweep = allProjectionCrvs[i].IsClosable(0.1);
+        sweepOneRail.SweepTolerance = 0.1;
+        sweepOneRail.MiterType = 0;
+        //performSweep
+        Brep[] pipe = sweepOneRail.PerformSweep(allProjectionCrvs[i], baseRectangle);
+        //cap planar holes
+        for (int j = 0; j < pipe.Length; j++)
+        {
+          pipe[j] = pipe[j].CapPlanarHoles(0.1);
+        }
+        pipes.AddRange(pipe);
+      }
+    }
+    return pipes;
   }
   #endregion
 }
