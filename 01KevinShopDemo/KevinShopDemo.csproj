@@ -63,47 +63,68 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\02Learn\C__Script-45a84.cs">
-      <Link>C__Script-45a84.cs</Link>
+      <Link>02Learn\C__Script-45a84.cs</Link>
     </Compile>
     <Compile Include="..\03BezirCurve\C__Script-5870f.cs">
-      <Link>C__Script-5870f.cs</Link>
+      <Link>03BezirCurve\C__Script-5870f.cs</Link>
     </Compile>
     <Compile Include="..\04SubdivisionMesh\C_-ea76d.cs">
-      <Link>C_-ea76d.cs</Link>
+      <Link>04SubdivisionMesh\C_-ea76d.cs</Link>
     </Compile>
     <Compile Include="..\05DataTreeTest\C_-d0bcc.cs">
-      <Link>C_-d0bcc.cs</Link>
+      <Link>05DataTreeTest\C_-d0bcc.cs</Link>
     </Compile>
     <Compile Include="..\06ParametricSoundHole\C_-84b64.cs">
-      <Link>C_-84b64.cs</Link>
+      <Link>06ParametricSoundHole\C_-84b64.cs</Link>
     </Compile>
     <Compile Include="..\07GH_Structure\C_-6d844.cs">
-      <Link>C_-6d844.cs</Link>
+      <Link>07GH_Structure\C_-6d844.cs</Link>
     </Compile>
     <Compile Include="..\08Handrail\C_-1eabe.cs">
-      <Link>C_-1eabe.cs</Link>
+      <Link>08Handrail\C_-1eabe.cs</Link>
     </Compile>
     <Compile Include="..\09RotatedIterativeBox\C_-7a0de.cs">
-      <Link>C_-7a0de.cs</Link>
+      <Link>09RotatedIterativeBox\C_-7a0de.cs</Link>
+    </Compile>
+    <Compile Include="..\10WaffleStructure\C_-98144.cs">
+      <Link>10WaffleStructure\C_-98144.cs</Link>
     </Compile>
     <Compile Include="..\11WeaveLandscapeSketch\component\C_-0bdaa.cs">
-      <Link>C_-0bdaa.cs</Link>
+      <Link>11WeaveLandscapeSketch\C_-0bdaa.cs</Link>
     </Compile>
     <Compile Include="..\11WeaveLandscapeSketch\C_-cb068.cs">
-      <Link>C_-cb068.cs</Link>
+      <Link>11WeaveLandscapeSketch\C_-cb068.cs</Link>
     </Compile>
     <Compile Include="..\12SteelTruss\C_-52eea.cs">
-      <Link>C_-52eea.cs</Link>
+      <Link>12SteelTruss\C_-52eea.cs</Link>
     </Compile>
     <Compile Include="..\13AxisNet\C_-a74db.cs">
-      <Link>C_-a74db.cs</Link>
+      <Link>13AxisNet\C_-a74db.cs</Link>
     </Compile>
     <Compile Include="..\14BeamFromAxisNet\C_-c703f.cs">
-      <Link>C_-c703f.cs</Link>
+      <Link>14BeamFromAxisNet\C_-c703f.cs</Link>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\08Handrail\08Handrail.gh">
+      <Link>08Handrail\08Handrail.gh</Link>
+    </None>
+    <None Include="..\09RotatedIterativeBox\09RotatedIterativeBox.gh">
+      <Link>09RotatedIterativeBox\09RotatedIterativeBox.gh</Link>
+    </None>
+    <None Include="..\11WeaveLandscapeSketch\11WeaveLandscapeSketch.gh">
+      <Link>11WeaveLandscapeSketch\11WeaveLandscapeSketch.gh</Link>
+    </None>
+    <None Include="..\12SteelTruss\12SteelTruss.gh">
+      <Link>12SteelTruss\12SteelTruss.gh</Link>
+    </None>
+    <None Include="..\13AxisNet\13AxisNet.gh">
+      <Link>13AxisNet\13AxisNet.gh</Link>
+    </None>
+    <None Include="..\14BeamFromAxisNet\14BeamFromAxisNet.gh">
+      <Link>14BeamFromAxisNet\14BeamFromAxisNet.gh</Link>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
