@@ -89,6 +89,9 @@
     <Compile Include="..\10WaffleStructure\C_-98144.cs">
       <Link>10WaffleStructure\C_-98144.cs</Link>
     </Compile>
+    <Compile Include="..\10WaffleStructure\partialFunction\C_-72c8d.cs">
+      <Link>10WaffleStructure\partialFunction\C_-72c8d.cs</Link>
+    </Compile>
     <Compile Include="..\11WeaveLandscapeSketch\component\C_-0bdaa.cs">
       <Link>11WeaveLandscapeSketch\C_-0bdaa.cs</Link>
     </Compile>
