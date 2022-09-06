@@ -107,6 +107,12 @@
     <Compile Include="..\14BeamFromAxisNet\C_-c703f.cs">
       <Link>14BeamFromAxisNet\C_-c703f.cs</Link>
     </Compile>
+    <Compile Include="..\16DispatchLineCrvs\C_-8c6cb.cs">
+      <Link>16DispatchLineCrvs\C_-8c6cb.cs</Link>
+    </Compile>
+    <Compile Include="..\17RotatedIterativeBoxV2\C_-040e4.cs">
+      <Link>17RotatedIterativeBoxV2\C_-040e4.cs</Link>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -127,6 +133,9 @@
     </None>
     <None Include="..\14BeamFromAxisNet\14BeamFromAxisNet.gh">
       <Link>14BeamFromAxisNet\14BeamFromAxisNet.gh</Link>
+    </None>
+    <None Include="..\15TileRoof\15TileRoof.gh">
+      <Link>15TileRoof\15TileRoof.gh</Link>
     </None>
     <None Include="packages.config" />
   </ItemGroup>
